@@ -1,1 +1,1 @@
-Test
+This is the readme for p5.js projects for the course ArtS 244.
