@@ -3,8 +3,8 @@ function setup() {
 }
 
 function preload() {
-  img1 = loadImage('assets/strawberry.png');
-  img2 = loadImage('assets/banana.png');
+  img1 = loadImage('assets/lifedrawing.png');
+  img2 = loadImage('assets/image.png');
   img4 = loadImage('assets/orange.png');
   img3 = loadImage('assets/art.png');
 }
@@ -137,7 +137,7 @@ function threeImagesScene() {
   
   textSize(64);
   fill("orange");
-  text('Fruit Gallery', title_x, title_y);
+  text('Gallery', title_x, title_y);
 
   framedImg(frame_x - pictureWidth - picturePadding, frame_y, pictureWidth, 20, 1);
   framedImg(frame_x, frame_y, pictureWidth, 20, 2);
@@ -190,7 +190,7 @@ let updateScene = false;
 let sceneNum = 0; // default is three image
 
 function draw() {
-  background("white");
+  background("black");
 
   if (sceneNum == 0) {
     threeImagesScene();
