@@ -150,7 +150,7 @@ function galleryScene() {
 // PRESETS
   let button_x = width /2;
   let button_y = height - (height * 1/8);
-  let picturePadding = 50; // pixels (vertical)
+  let picturePadding = height / 1/12; // pixels (vertical)
   let buttonPadding = 20;
 
   let title_x = width/2;
