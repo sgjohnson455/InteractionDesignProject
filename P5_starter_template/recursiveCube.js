@@ -1,5 +1,6 @@
 function setup() {
-  createCanvas(400, 400);
+  createCanvas(windowWidth, windowHeight);
+
 }
 
 function drawCube(x, y, cSize, cubePadding, depthInstance) {
@@ -39,7 +40,7 @@ function draw() {
 
     //PRESETS
     let cubePadding = 20; // pixels
-    let cubeSize = Math.max(width, height);
+    let cubeSize = Math.min(width, height);
     let depthInstance = recursiveDepth; // set to global val
 
     rectMode(CENTER);
