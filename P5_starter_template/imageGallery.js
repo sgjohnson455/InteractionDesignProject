@@ -5,7 +5,8 @@ function setup() {
 function preload() {
   img1 = loadImage('assets/strawberry.png');
   img2 = loadImage('assets/banana.png');
-  img3 = loadImage('assets/orange.png');
+  img4 = loadImage('assets/orange.png');
+  img3 = loadImage('assets/art.png');
 }
 
 // Visual Assets
