@@ -5,7 +5,6 @@ function setup() {
 function preload() {
   img1 = loadImage('assets/lifedrawing.png');
   img2 = loadImage('assets/image.png');
-  img4 = loadImage('assets/orange.png');
   img3 = loadImage('assets/art.png');
 }
 
@@ -170,7 +169,7 @@ function galleryScene() {
   // UI ---------------------
   textSize(64);
   fill("orange");
-  text('Fruit Gallery', title_x, title_y);
+  text('Gallery', title_x, title_y);
   framedImg(frame_x, frame_y, pictureHeight, 20, currImage);
 
   default_button(button_x - pictureHeight/2 + 30, navButtonOffset, 60, 30, "<", "back");

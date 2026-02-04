@@ -7,6 +7,7 @@ function setup() {
 function drawCube(x, y, cSize, cubePadding, depthInstance, cubeColor) {
     // Base Case: depth is 0'
     let dInstance = depthInstance
+    let c = 1.5;
     if (dInstance <= 0) {
         fill(cubeColor, 255, 255);
         rect(x, y, cSize, cSize); // draw main cube
@@ -22,13 +23,13 @@ function drawCube(x, y, cSize, cubePadding, depthInstance, cubeColor) {
         let cInstanceSize = cSize/2 - cubePadding/2;
 
 
-        drawCube(x - xOffset, y - yOffset, cInstanceSize, cubePadding/2, dInstance - 1, cubeColor + 25);
+        drawCube(x - xOffset, y - yOffset, cInstanceSize, cubePadding/2, dInstance - 1, cubeColor + 5 * c);
        
-        drawCube(x + xOffset, y - yOffset, cInstanceSize, cubePadding/2, dInstance - 1, cubeColor + 25);
+        drawCube(x + xOffset, y - yOffset, cInstanceSize, cubePadding/2, dInstance - 1, cubeColor + 10 * c);
        
-        drawCube(x - xOffset, y + yOffset, cInstanceSize, cubePadding/2, dInstance - 1, cubeColor + 25);
+        drawCube(x - xOffset, y + yOffset, cInstanceSize, cubePadding/2, dInstance - 1, cubeColor + 15 * c);
        
-        drawCube(x + xOffset, y + yOffset, cInstanceSize, cubePadding/2, dInstance - 1, cubeColor - 25);
+        drawCube(x + xOffset, y + yOffset, cInstanceSize, cubePadding/2, dInstance - 1, cubeColor + 20 * c);
     }
 }
 
@@ -39,7 +40,7 @@ let equalPaddingMode = true;
 
 // Main
 function draw() {
-    background("white");
+    background("black");
 
     //PRESETS
     let cubePadding = 20; // pixels
@@ -58,7 +59,7 @@ function draw() {
     // Live Stats
     textStyle(BOLD);
 
-    fill("red");
+    fill("white");
     text(recursiveDepth, cubePadding/2, cubePadding);
 
     text(`Total Object Count: ${(recursiveDepth) ** 4}`, cubePadding/2, height - cubePadding/4);
