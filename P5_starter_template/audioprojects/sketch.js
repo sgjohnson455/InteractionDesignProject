@@ -1,13 +1,13 @@
 function preload() {
     img = loadImage('/assets/awesomeCar.png')
-    audio = loadSound('/assets/sound/carCrash.mp3')
+    audio = loadSound('/assets/carCrash.mp3')
 }
 
 function setup() {
   createCanvas(500, 500);
 
   // button logic
-  button = createButton("Toggle Sound");
+  button = createButton("Toggle Sound (on/off)");
   button.position(width/ 2, height / 4);
 }
 
@@ -23,6 +23,6 @@ function togglesound() {
   if (audio.isPlaying()) {
     audio.stop();
   } else {
-    audio.play();
+    audio.loop();
   }
 }
