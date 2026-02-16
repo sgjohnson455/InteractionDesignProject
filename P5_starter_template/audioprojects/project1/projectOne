@@ -1,0 +1,291 @@
+function setup() {
+  createCanvas(400, 400);
+}
+
+function preload() {
+  natureMain = loadSound('audioprojects/project1/audio/greenAmbience.mp3');
+}
+
+// global var
+let gS = 10; // game Scale
+
+let pX = 200; // player coord
+let pY = 200; // player coord
+let pD = 0; // player direction right = 0, up = 1, left = 2, down = 3;
+
+let boxSize = 6; // radius of player mouse
+let playerInRange = true;
+
+function draw() {
+
+  // play sound if player in range
+  if (playerInRange) {
+    if (!natureMain.isPlaying()) {
+      natureMain.loop();
+    }
+  } else {
+    natureMain.stop();
+  }
+
+  background('green');
+  
+  smogBG();
+  //smogWindow(2);
+  grassWindow(8);
+  
+  drawPlayer();
+  
+  // Control Player Movement
+  console.log(pX);
+  
+  let fC = frameCount % 60
+  // moveAmount
+  let moveSpeed = 5;
+  let mS = ((gS/400) * moveSpeed);
+  
+  if (keyIsPressed) {
+    switch(key) {
+      case 's':
+        pY += gS * mS;
+        pD = 3;
+        break;
+      case 'w':
+        pY -= gS * mS;
+        pD = 1;
+        break;
+      case 'd':
+        pX += (gS * mS);
+        pD = 0;
+        break;
+      case 'a':
+        pX -= gS * mS;
+        pD = 2;
+        break;
+      default:
+        pD = 3;
+        break;
+      }
+    }
+}
+
+
+// Player specific //////////////////
+function drawPlayer() {
+  // draw player
+  
+  // adjust coords
+  let playerY = round(pY / gS) * gS
+  let playerX = round(pX / gS) * gS
+  
+  // draw (art)
+  
+  updateMainColor(playerX, playerY);
+  rect(playerX, playerY, gS, gS);
+  
+  switch(pD) {
+    case 0: 
+      drawSecondaryPixel(playerX + gS, playerY);
+      drawSecondaryPixel(playerX, playerY - gS);
+      drawSecondaryPixel(playerX, playerY + gS);
+      break;
+    case 1: 
+      drawSecondaryPixel(playerX, playerY - gS);
+      drawSecondaryPixel(playerX + gS, playerY);
+      drawSecondaryPixel(playerX - gS, playerY);
+      break;
+    case 2: 
+      drawSecondaryPixel(playerX - gS, playerY);
+      drawSecondaryPixel(playerX, playerY + gS);
+      drawSecondaryPixel(playerX, playerY - gS);
+      break;
+    case 3: 
+      drawSecondaryPixel(playerX, playerY + gS);
+      drawSecondaryPixel(playerX + gS, playerY);
+      drawSecondaryPixel(playerX - gS, playerY);
+      break;
+    default:
+      drawSecondaryPixel(playerX + gS, playerY);
+      drawSecondaryPixel(playerX, playerY - gS);
+      drawSecondaryPixel(playerX, playerY + gS);
+      break;
+  }
+}
+
+// sound mixes
+function natureMix() {
+  natureMain.loop(); 
+}
+
+// color checks ///////////////////////////
+function updateMainColor(pRectX, pRectY) {
+  // adjust coords
+  let mY = round(mouseY / gS) * gS
+  let mX = round(mouseX / gS) * gS
+  
+    if (pRectX >= (mX - boxSize * gS) && pRectX <= (mX + boxSize * gS)) {
+      // console.log("PX");
+      // console.log("pRectX")
+      // console.log(mX - boxSize * gS)
+      if (pRectY >= (mY - boxSize * gS) && pRectY <= (mY + boxSize * gS)) {
+          //console.log("in y range");
+        fill('white');
+        playerInRange = true;
+        } else {
+      fill('black');
+      playerInRange = false;
+    }
+    } else {
+      fill('black');
+      playerInRange = false;
+    }
+}
+
+function drawSecondaryPixel(pRectX, pRectY) {
+  // adjust coords
+  let mY = round(mouseY / gS) * gS
+  let mX = round(mouseX / gS) * gS
+  
+    if (pRectX > (mX - boxSize * gS) && pRectX < (mX + boxSize * gS)) {
+      // console.log("PX");
+      // console.log("pRectX")
+      // console.log(mX - boxSize * gS)
+      if (pRectY > (mY - boxSize * gS) && pRectY < (mY + boxSize * gS)) {
+          //console.log("in y range");
+        fill('pink');
+        } else {
+      fill('green');
+    }
+    } else {
+      fill('green');
+    }
+  // draw pixel
+  rect(pRectX, pRectY, gS, gS);
+}
+
+// mouse Effects //////////////////////////
+
+function grassBG() {
+  // Set the noise level and scale.
+  let noiseLevel = 255;
+  let noiseScale = 0.01;
+
+  // Iterate from top to bottom.
+  for (let y = 0; y < height; y += gS) {
+    // Iterate from left to right.
+    for (let x = 0; x < width; x += gS) {
+      // Scale the input coordinates.
+      let nx = noiseScale * x;
+      let ny = noiseScale * y;
+
+      // Compute the noise value.
+      let c = color(255, noiseLevel * noise(nx, ny), 255);
+
+      // Draw the point.
+      noStroke();
+      fill(c);
+      
+      rect(x, y, gS, gS);
+    }
+  }
+}
+
+function grassWindow(squareWidth) {
+  
+  
+  // Set the noise level and scale.
+  let noiseLevel = 255;
+  let noiseScale = 0.009;
+  
+  // adjusted coords
+  let mY = round(mouseY / gS) * gS
+  let mX = round(mouseX / gS) * gS
+
+  // Iterate from top to bottom.
+  for (let y = (mY - squareWidth * gS); y < (mY + squareWidth * gS); y += gS) {
+    // Iterate from left to right.
+    for (let x = (mX - squareWidth * gS); x < (mX + squareWidth * gS); x += gS) {
+      
+      // Scale the input coordinates.
+      let nx = noiseScale * x;
+      let ny = noiseScale * y;
+      let nt = noiseScale * frameCount;
+
+      let multiply = 1.5;
+      let lighten = 10;
+      
+      let c = color(0 * multiply + lighten, noiseLevel * noise(nx, ny) * multiply + lighten, 0 * multiply + lighten);
+
+      // Draw the point.
+      noStroke();
+      fill(c);
+      
+      rect(x, y, gS, gS);
+    }
+  }
+}
+
+function smogBG() {
+  // Set the noise level and scale.
+  let noiseLevel = 255;
+  let noiseScale = 0.009;
+
+  // Iterate from top to bottom.
+  for (let y = 0; y < height; y += gS) {
+    // Iterate from left to right.
+    for (let x = 0; x < width; x += gS) {
+      
+      // Scale the input coordinates.
+      let nx = noiseScale * x;
+      let ny = noiseScale * y;
+      let nt = noiseScale * frameCount;
+
+      // Compute the noise value.
+      let c = noiseLevel * noise(nx, ny, nt);
+      
+      // Make Fill Color
+      let fillColor = color('green')
+
+      // Draw the point.
+      noStroke();
+      fill(c);
+      
+      rect(x, y, 10, 10);
+    }
+  }
+}
+
+function smogWindow(squareWidth) {
+  
+  // Set the noise level and scale.
+  let noiseLevel = 255;
+  let noiseScale = 0.009;
+  
+  // adjusted coords
+  let mY = round(mouseY / gS) * gS
+  let mX = round(mouseX / gS) * gS
+
+  // Iterate from top to bottom.
+  for (let y = (mY - squareWidth * gS); y < (mY + squareWidth * gS); y += gS) {
+    // Iterate from left to right.
+    for (let x = (mX - squareWidth * gS); x < (mX + squareWidth * gS); x += gS) {
+      
+      // Scale the input coordinates.
+      let nx = noiseScale * x;
+      let ny = noiseScale * y;
+      let nt = noiseScale * frameCount;
+
+      // Compute the noise value.
+      let c = noiseLevel * noise(nx, ny, nt);
+      
+      // Make Fill Color
+      let fillColor = color('green')
+
+      // Draw the point.
+      noStroke();
+      fill(c);
+      
+      rect(x, y, gS, gS);
+    }
+  }
+  
+}
