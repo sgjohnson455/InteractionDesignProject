@@ -1,4 +1,4 @@
-![Game Cover photo](gameCover.png)
+<img src="gameCover.png" alt="Cover Photo of the Game" width="300" />
 
 ## Future Clutter
 
