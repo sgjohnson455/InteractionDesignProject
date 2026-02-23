@@ -1,3 +1,5 @@
+![Game Cover photo](gameCover.png)
+
 ## Future Clutter
 
 #### Short Game/Experience for a SoundScape Project. 
