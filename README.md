@@ -5,6 +5,7 @@
 #### Short Game/Experience for a SoundScape Project. 
 Created by Sara Johnson using p5.js
 
+[Play Now >](https://sgjohnson455.web.illinois.edu/futureClutter.html)
 ***
 
 #### Controls:
