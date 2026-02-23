@@ -4,6 +4,7 @@ function setup() {
 
 function preload() {
   natureMain = loadSound('audioprojects/project1/audio/greenAmbience.mp3');
+  cityMain = loadSound('audioprojects/project1/audio/cityMain.mp3');
 }
 
 // global var
@@ -20,11 +21,17 @@ function draw() {
 
   // play sound if player in range
   if (playerInRange) {
+    cityMain.pause();
     if (!natureMain.isPlaying()) {
       natureMain.loop();
     }
+    console.log("play nature")
   } else {
-    natureMain.stop();
+    natureMain.pause();
+    if (!cityMain.isPlaying()) {
+      cityMain.loop();
+    }
+    console.log("play city")
   }
 
   background('green');
