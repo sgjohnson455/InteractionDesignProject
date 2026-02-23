@@ -3,7 +3,9 @@
 #### Short Game/Experience for a SoundScape Project. 
 Created by Sara Johnson using p5.js
 
-Controls:
+***
+
+#### Controls:
 
 Click anywhere on the grid to add a seed
 Click on any seed to remove it
