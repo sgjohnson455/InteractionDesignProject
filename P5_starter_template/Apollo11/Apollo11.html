@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="shortcut icon" href="">
+    <title>Babylon.js sample code</title>
+
+    <!-- Babylon.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dat-gui/0.6.2/dat.gui.min.js"></script>
+    <script src="https://assets.babylonjs.com/generated/Assets.js"></script>
+    <script src="https://cdn.babylonjs.com/recast.js"></script>
+    <script src="https://cdn.babylonjs.com/ammo.js"></script>
+    <script src="https://cdn.babylonjs.com/havok/HavokPhysics_umd.js"></script>
+    <script src="https://cdn.babylonjs.com/cannon.js"></script>
+    <script src="https://cdn.babylonjs.com/Oimo.js"></script>
+    <script src="https://cdn.babylonjs.com/earcut.min.js"></script>
+    <script src="https://cdn.babylonjs.com/babylon.js"></script>
+    <script src="https://cdn.babylonjs.com/materialsLibrary/babylonjs.materials.min.js"></script>
+    <script src="https://cdn.babylonjs.com/proceduralTexturesLibrary/babylonjs.proceduralTextures.min.js"></script>
+    <script src="https://cdn.babylonjs.com/postProcessesLibrary/babylonjs.postProcess.min.js"></script>
+    <script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.js"></script>
+    <script src="https://cdn.babylonjs.com/serializers/babylonjs.serializers.min.js"></script>
+    <script src="https://cdn.babylonjs.com/gui/babylon.gui.js"></script>
+    <script src="https://cdn.babylonjs.com/inspector/babylon.inspector.bundle.js"></script>
+
+
+    <style>
+        html,
+        body {
+            overflow: hidden;
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+
+        #renderCanvas {
+            width: 100%;
+            height: 100%;
+            touch-action: none;
+        }
+
+        #canvasZone {
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="canvasZone"><canvas id="renderCanvas"></canvas></div>
+    <script>
+        // saved camera points for transitions
+        const cameraViews = {
+            middleCockpit: {
+                position: new BABYLON.Vector3(-84.10, 3.32, -86.17),
+                target: new BABYLON.Vector3(-84.10, 3.32, -84.99)
+            },
+
+            topHatchOutside: {
+                position: new BABYLON.Vector3(-83.36, 228.85, -109.00),
+                target: new BABYLON.Vector3(-83.36, 208.40, -108.95)
+            },
+
+            hallway: {
+                position: new BABYLON.Vector3(-80.2, 3.1, -83.5),
+                target: new BABYLON.Vector3(-79.8, 3.0, -82.9)
+            },
+
+            outside: {
+                position: new BABYLON.Vector3(-70, 10, -70),
+                target: new BABYLON.Vector3(-82, 3, -85)
+            }
+        };
+
+        var canvas = document.getElementById("renderCanvas");
+
+        var startRenderLoop = function (engine, canvas) {
+            engine.runRenderLoop(function () {
+                if (sceneToRender && sceneToRender.activeCamera) {
+                    sceneToRender.render();
+                }
+            });
+        }
+
+        var engine = null;
+        var scene = null;
+        var sceneToRender = null;
+        var createDefaultEngine = function () { return new BABYLON.Engine(canvas, true, { preserveDrawingBuffer: true, stencil: true, disableWebGL2Support: false }); };
+        var delayCreateScene = function () {
+            // Create a scene.
+            var scene = new BABYLON.Scene(engine);
+
+            // Create a default skybox with an environment.
+            var hdrTexture = BABYLON.CubeTexture.CreateFromPrefilteredData("skybox/space.env", scene);
+            var currentSkybox = scene.createDefaultSkybox(hdrTexture, true);
+
+            // Load Apollo model
+            BABYLON.SceneLoader.Append("models/", "apollo.glb", scene, function (scene) {
+                // Load Moon model after Apollo
+                BABYLON.SceneLoader.ImportMesh("", "models/", "moon.glb", scene, function (meshes) {
+                    // Position the Moon so it’s visible
+                    meshes[0].position = new BABYLON.Vector3(5, 1, 0); // adjust X/Z as needed
+                    meshes[1].position = new BABYLON.Vector3(85.10, 0.37, 250.90);
+                    meshes[1].scaling = new BABYLON.Vector3(5, 5, 5); // scale up
+                    
+                    // Create a camera.
+                    const camera = new BABYLON.FreeCamera(
+                        "camera",
+                        new BABYLON.Vector3(-84.10, 3.32, -86.17),
+                        
+                        scene
+                    );
+
+                    camera.attachControl(canvas, true);
+                    camera.lowerRadiusLimit = 1;    // minimum zoom
+                    camera.upperRadiusLimit = 500;  // maximum zoom
+                    scene.activeCamera = camera;
+
+                    scene.onBeforeRenderObservable.add(() => {
+                        // The first mesh in the scene should be your loaded model
+                        if (scene.meshes[0]) {
+                            scene.meshes[0].rotate(BABYLON.Vector3.Up(), 0.000);
+                        }
+                    });
+
+                });
+            });
+            
+
+            return scene;
+        }
+
+
+
+        window.initFunction = async function () {
+
+
+
+            var asyncEngineCreation = async function () {
+                try {
+                    return createDefaultEngine();
+                } catch (e) {
+                    console.log("the available createEngine function failed. Creating the default engine instead");
+                    return createDefaultEngine();
+                }
+            }
+
+            window.engine = await asyncEngineCreation();
+            if (!engine) throw 'engine should not be null.';
+            startRenderLoop(engine, canvas);
+            window.scene = delayCreateScene();
+        };
+        initFunction().then(() => {
+            sceneToRender = scene
+        });
+
+        // Resize
+        window.addEventListener("resize", function () {
+            engine.resize();
+
+        });
+
+        // print coords
+        window.addEventListener("keydown", function (ev) {
+            if (ev.key === "p") {   // press P to print camera position
+                const cam = scene.activeCamera;
+
+                console.log("Position:", cam.position);
+                console.log("Target:", cam.target);
+                console.log("Alpha:", cam.alpha);
+                console.log("Beta:", cam.beta);
+                console.log("Radius:", cam.radius);
+            }
+        });
+
+        // adjusts camera target (with smooth transition)
+        function goToView(name) {
+            const view = cameraViews[name];
+            const cam = scene.activeCamera;
+
+            // animate position
+            BABYLON.Animation.CreateAndStartAnimation(
+                "camMove",
+                cam,
+                "position",
+                60,
+                120,
+                cam.position,
+                view.position,
+                BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT
+            );
+
+            // animate where camera looks
+            BABYLON.Animation.CreateAndStartAnimation(
+                "camLook",
+                cam,
+                "target",
+                60,
+                120,
+                cam.getTarget(),
+                view.target,
+                BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT
+            ); p
+        }
+
+        // change camera view with E
+        window.addEventListener("keydown", (e) => {
+
+            if (e.key === "1") goToView("middleCockpit");
+            if (e.key === "2") goToView("hallway");
+            if (e.key === "3") goToView("outside");
+
+        });
+
+    </script>
+</body>
+
+</html>
