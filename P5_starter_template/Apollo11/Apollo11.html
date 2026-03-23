@@ -6,6 +6,10 @@
     <link rel="shortcut icon" href="">
     <title>Babylon.js sample code</title>
 
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+
     <!-- Babylon.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dat-gui/0.6.2/dat.gui.min.js"></script>
     <script src="https://assets.babylonjs.com/generated/Assets.js"></script>
@@ -28,29 +32,132 @@
     <style>
         html,
         body {
-            overflow: hidden;
+            background-color: black;
+            color: white;
+
             width: 100%;
             height: 100%;
-            margin: 0;
-            padding: 0;
+            display: flex;
+            flex-direction: row;
+            font-size: 16px;
+        }
+
+        #mainContainer {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: row;
         }
 
         #renderCanvas {
             width: 100%;
             height: 100%;
             touch-action: none;
+
+        }
+
+        #textColumn {
+            width: 20%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 20px;
         }
 
         #canvasZone {
-            width: 100%;
+            width: 80%;
             height: 100%;
+            display: flex;
+
+        }
+
+        /* Style the button that is used to open and close the collapsible content */
+        .collapsible {
+            background-color: #777;
+            color: white;
+            cursor: pointer;
+            padding: 10px;
+            width: 100%;
+            border: none;
+            text-align: left;
+            outline: none;
+            font-size: 16px;
+        }
+
+        /* Add a background color to the button if it's clicked (add .active) */
+        .active,
+        .collapsible:hover {
+            background-color: gray;
+        }
+
+        /* Style the collapsible content. Note: hidden by default */
+        .content {
+            padding: 0 18px;
+            display: none;
+            overflow: hidden;
+            background-color: black;
+        }
+
+        #toolBar {
+            width: 80%;
+            height: 60px;
         }
     </style>
 </head>
 
 <body>
-    <div id="canvasZone"><canvas id="renderCanvas"></canvas></div>
+    <div id="mainContainer">
+        <div id="canvasZone"><canvas id="renderCanvas"></canvas></div>
+
+        <div id="textColumn">
+            <h1>Apollo 11</h1>
+            <p>In this project, we explore the awesome moon landing</p>
+
+            <div id="timer-display" style="font-size: 48px; font-family: monospace;">0</div>
+
+            <!-- Play/Reset Button -->
+            <div id="toolBar">
+                <button type="button" onclick="startTimer()">
+                    <i class="fa-regular fa-play" style="color: rgb(0, 0, 0); font-size: 40px;"></i>
+                </button>
+                <button type="button" onclick="stopTimer()">
+                    <i class="fa-solid fa-pause" style="color: rgb(0, 0, 0); font-size: 40px;"></i>
+                </button>
+                <button type="button" onclick="resetTimer()">
+                    <i class="fa-solid fa-arrow-rotate-left" style="color: rgb(0, 0, 0); font-size: 40px;"></i>
+                </button>
+
+            </div>
+
+            <button type="button" class="collapsible">Click to View Transcript</button>
+
+            <!-- Hidden Content (The Transcript) -->
+            <div class="content">
+                <p><strong>Speaker 1:</strong> Welcome to the presentation.</p>
+                <p><strong>Speaker 2:</strong> Thank you for having me. Today we will discuss...</p>
+            </div>
+
+        </div>
+
+
+    </div>
+
     <script>
+        var coll = document.getElementsByClassName("collapsible");
+        var i;
+
+        for (i = 0; i < coll.length; i++) {
+            coll[i].addEventListener("click", function () {
+                this.classList.toggle("active");
+                var content = this.nextElementSibling;
+                if (content.style.display === "block") {
+                    content.style.display = "none";
+                } else {
+                    content.style.display = "block";
+                }
+            });
+        }
+
         // saved camera points for transitions
         const cameraViews = {
             middleCockpit: {
@@ -63,15 +170,20 @@
                 target: new BABYLON.Vector3(-83.36, 208.40, -108.95)
             },
 
-            hallway: {
-                position: new BABYLON.Vector3(-80.2, 3.1, -83.5),
-                target: new BABYLON.Vector3(-79.8, 3.0, -82.9)
+            moonFeature: {
+                position: new BABYLON.Vector3(-79.95, 2.88, 225.25),
+                target: new BABYLON.Vector3(-80.08, 1.83, 243.51)
             },
 
             outside: {
                 position: new BABYLON.Vector3(-70, 10, -70),
                 target: new BABYLON.Vector3(-82, 3, -85)
-            }
+            },
+
+            yellowSpace: {
+                position: new BABYLON.Vector3(-189.35, -23.57, -209.38),
+                target: new BABYLON.Vector3(-203.38, -23.60, -229.16)
+            },
         };
 
         var canvas = document.getElementById("renderCanvas");
@@ -84,17 +196,53 @@
             });
         }
 
+
+
         var engine = null;
         var scene = null;
         var sceneToRender = null;
-        var createDefaultEngine = function () { return new BABYLON.Engine(canvas, true, { preserveDrawingBuffer: true, stencil: true, disableWebGL2Support: false }); };
+        var createDefaultEngine = function () { return new BABYLON.Engine(canvas, true, { preserveDrawingBuffer: true, stencil: true, disableWebGL2Support: false, audioEngine: true }); };
         var delayCreateScene = function () {
             // Create a scene.
             var scene = new BABYLON.Scene(engine);
 
+
             // Create a default skybox with an environment.
-            var hdrTexture = BABYLON.CubeTexture.CreateFromPrefilteredData("skybox/space.env", scene);
+            var hdrTexture = BABYLON.CubeTexture.CreateFromPrefilteredData("skybox/space2.env", scene);
             var currentSkybox = scene.createDefaultSkybox(hdrTexture, true);
+
+            scene.onBeforeRenderObservable.add(() => {
+                if (!cameraRotating) return;
+                const cam = scene.activeCamera;
+                if (!cam) return;
+
+                // orbit the camera around its current target
+                const target = cam.target.clone();
+                const radius = BABYLON.Vector3.Distance(cam.position, target);
+                const angle = Math.atan2(cam.position.z - target.z, cam.position.x - target.x);
+                const newAngle = angle + 0.002;  // adjust speed to taste
+
+                cam.position.x = target.x + radius * Math.cos(newAngle);
+                cam.position.z = target.z + radius * Math.sin(newAngle);
+                cam.setTarget(target);
+            });
+
+            // preload audio assets 
+            const soundDefs = [
+                { key: "narration1", src: "assets/theatricalJFK.mp3", options: { volume: 0.5 } },
+                { key: "openingAmbiance", src: "assets/openingAmbiance.wav" },
+            ];
+
+            window.sounds = {};
+
+            soundDefs.forEach(({ key, src }) => {
+                window.sounds[key] = new BABYLON.Sound(key, src, scene);
+            });
+
+            console.log("test");
+
+            let shipRotating = false;
+
 
             // Load Apollo model
             BABYLON.SceneLoader.Append("models/", "apollo.glb", scene, function (scene) {
@@ -102,14 +250,16 @@
                 BABYLON.SceneLoader.ImportMesh("", "models/", "moon.glb", scene, function (meshes) {
                     // Position the Moon so it’s visible
                     meshes[0].position = new BABYLON.Vector3(5, 1, 0); // adjust X/Z as needed
+
+                    // moon load
                     meshes[1].position = new BABYLON.Vector3(85.10, 0.37, 250.90);
-                    meshes[1].scaling = new BABYLON.Vector3(5, 5, 5); // scale up
-                    
+                    meshes[1].scaling = new BABYLON.Vector3(10, 10, 10); // scale up
+
                     // Create a camera.
                     const camera = new BABYLON.FreeCamera(
                         "camera",
                         new BABYLON.Vector3(-84.10, 3.32, -86.17),
-                        
+
                         scene
                     );
 
@@ -119,15 +269,15 @@
                     scene.activeCamera = camera;
 
                     scene.onBeforeRenderObservable.add(() => {
-                        // The first mesh in the scene should be your loaded model
-                        if (scene.meshes[0]) {
-                            scene.meshes[0].rotate(BABYLON.Vector3.Up(), 0.000);
-                        }
+                        meshes.forEach(moonMesh => {
+                            //moonMesh.position(85.10,  0.37, 0.001); // small rotation per frame
+                            //moonMesh.scaling()
+                        });
                     });
 
                 });
             });
-            
+
 
             return scene;
         }
@@ -180,17 +330,6 @@
             const view = cameraViews[name];
             const cam = scene.activeCamera;
 
-            // animate position
-            BABYLON.Animation.CreateAndStartAnimation(
-                "camMove",
-                cam,
-                "position",
-                60,
-                120,
-                cam.position,
-                view.position,
-                BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT
-            );
 
             // animate where camera looks
             BABYLON.Animation.CreateAndStartAnimation(
@@ -202,17 +341,142 @@
                 cam.getTarget(),
                 view.target,
                 BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT
-            ); p
+            );
+
+            // animate position
+            BABYLON.Animation.CreateAndStartAnimation(
+                "camMove",
+                cam,
+                "position",
+                60,
+                120,
+                cam.position,
+                view.position,
+                BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT
+            );
         }
 
-        // change camera view with E
+        // change camera view with E (for scene)
         window.addEventListener("keydown", (e) => {
 
             if (e.key === "1") goToView("middleCockpit");
-            if (e.key === "2") goToView("hallway");
-            if (e.key === "3") goToView("outside");
+            if (e.key === "2") goToView("topHatchOutside");
+            if (e.key === "3") goToView("moonFeature");
 
         });
+
+
+        // PODCAST ACTUAL FUNCTIONS ////////////////////////////////////////////////////////////////////////////////////////////
+        let startTime = null;      // performance.now() when playback began
+        let pausedAt = 0;          // ms accumulated before last pause
+        let animFrame = null;
+        let firedCues = new Set();
+        let cameraRotating = false;
+
+
+
+        // Events timeline
+        const timeline = [
+            // start in the middle
+            { t: t(0), fn: () => goToView("middleCockpit") },
+            { t: t(0), fn: () => { sounds.openingAmbiance.play(); startedSounds.add("openingAmbiance"); } },
+            { t: t(0), fn: () => cameraRotating = true },
+
+
+            { t: t(0.25), fn: () => cameraRotating = false },
+            { t: t(0.05), fn: () => { sounds.narration1.play(); startedSounds.add("narration1"); } },
+
+            { t: t(0.30), fn: () => goToView("topHatchOutside") },  // 30 seconds
+
+            { t: t(1.15), fn: () => goToView("moonFeature") },      // 1 min 15 sec
+            { t: t(3.44), fn: () => goToView("outside") },          // 3 min 44 sec
+        ];
+
+        // Interprets times cleanly (takes in minute. second to two places format (m.ss))
+        function t(mss) {
+            const [m, ss] = String(mss).split('.');
+            const seconds = (parseInt(m) * 60) + parseInt((ss ?? '0').padEnd(2, '0'));
+            return seconds * 1000;
+        }
+
+        function getElapsed() {
+            if (startTime === null) return pausedAt;
+            return pausedAt + (performance.now() - startTime);
+        }
+
+        // updates timeline events
+        function tick() {
+            const elapsed = getElapsed();
+
+            // check if the time is the start of a new trigger, and if so, begin event
+            timeline.forEach((cue, i) => {
+                if (!firedCues.has(i) && elapsed >= cue.t) {
+                    firedCues.add(i);
+                    cue.fn();
+                }
+            });
+
+            document.getElementById('timer-display').textContent = formatTime(elapsed);
+
+            animFrame = requestAnimationFrame(tick);
+        }
+
+        // trag song prog
+        let startedSounds = new Set();
+
+        function startTimer() {
+            if (animFrame !== null) return;
+
+            // unlock audio context on first user gesture
+            if (BABYLON.Engine.audioEngine) {
+                BABYLON.Engine.audioEngine.unlock();
+            }
+
+            // only resume sounds that were actually started by the timeline
+            Object.entries(sounds).forEach(([key, s]) => {
+                if (startedSounds.has(key) && !s.isPlaying) s.play();
+            });
+
+            startTime = performance.now();
+            animFrame = requestAnimationFrame(tick);
+        }
+
+        function stopTimer() {
+            if (animFrame === null) return;
+            pausedAt = getElapsed();          // save how far we got
+            cancelAnimationFrame(animFrame);
+            animFrame = null;
+            startTime = null;
+
+            // pause all playing sounds
+            Object.values(sounds).forEach(s => {
+                if (s.isPlaying) s.pause();
+            });
+        }
+
+        function resetTimer() {
+            cancelAnimationFrame(animFrame);
+            animFrame = null;
+            startTime = null;
+            pausedAt = 0;
+            firedCues.clear();
+            document.getElementById('timer-display').textContent = '0s';
+            goToView("middleCockpit");
+
+            // stop and rewind audio
+            Object.values(sounds).forEach(s => s.stop());
+
+            startedSounds.clear();
+            cameraRotating = false;
+        }
+
+        // format gotten time to input (m.ss)
+        function formatTime(ms) {
+            const totalSeconds = Math.floor(ms / 1000);
+            const m = Math.floor(totalSeconds / 60);
+            const ss = String(totalSeconds % 60).padStart(2, '0');
+            return `${m}.${ss}`;
+        }
 
     </script>
 </body>
