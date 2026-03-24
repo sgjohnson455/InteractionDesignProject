@@ -111,9 +111,12 @@
 
         <div id="textColumn">
             <h1>Apollo 11</h1>
-            <p>In this project, we explore the awesome moon landing</p>
+            <p>In this project, we explore the Apollo 11 mission, before they landed on the moon. <br></br> Podcast is ~2.30 min. Use arrow keys to explore freely, and move with mouse (optional) 
+                <br></br>
+                (Reset
+                button may not trigger correctly. If this occurs, reload the page.)</p>
 
-            <div id="timer-display" style="font-size: 48px; font-family: monospace;">0</div>
+            <div id="timer-display" style="font-size: 48px; font-family: monospace;">0.00</div>
 
             <!-- Play/Reset Button -->
             <div id="toolBar">
@@ -129,12 +132,49 @@
 
             </div>
 
-            <button type="button" class="collapsible">Click to View Transcript</button>
+            <button type="button" class="collapsible">Click to View Script</button>
 
             <!-- Hidden Content (The Transcript) -->
-            <div class="content">
-                <p><strong>Speaker 1:</strong> Welcome to the presentation.</p>
-                <p><strong>Speaker 2:</strong> Thank you for having me. Today we will discuss...</p>
+            <div class="content" style="overflow: auto;">
+                <!-- <p><strong>Speaker 1:</strong> Welcome to the presentation.</p>
+                <p><strong>Speaker 2:</strong> Thank you for having me. Today we will discuss...</p> -->
+                <p>In July 1969, NASA launched Apollo 11, the first mission to land humans on the moon. It was the
+                    result of President Kennedy's 1961 challenge to Congress to get a man on the moon before the end of
+                    the decade. The vehicle that made it possible was the Saturn V, a three-stage rocket weighing around
+                    six million pounds at liftoff. Three astronauts sat at the top of it, Neil Armstrong, Buzz Aldrin,
+                    and Michael Collins, and this is a bit about who they were before they got there.</p>
+                <br></br>
+
+                <p>Michael Collins sat on the right seat, where you are now. He had a wife and three children back on
+                    Earth waiting for him to come home. They knew he was going to space, but it is worth asking how much
+                    anyone on Earth could really picture what that meant. The blankness of it. When Collins was later
+                    asked if he was disappointed not to walk on the moon, his wife answered the question simply. She
+                    said she thought he was there with them in spirit.</p>
+                <br></br>
+
+                <p>Buzz Aldrin sat in the middle seat. He was operating as the lunar module pilot for the mission. To
+                    give some sense of the scale of what that meant, the Apollo VIII spacecraft had around fifteen
+                    million moving parts. A failure rate of just 0.1 percent would mean fifteen thousand parts not
+                    working. On that mission, only five failed. The Saturn V carrying these three men had even more
+                    components than that. Aldrin was not just flying a ship. He was operating something built and
+                    maintained by thousands of engineers on the ground, every part of it checked and rechecked by people
+                    who would never leave the atmosphere. His wife Joan and their children Mike, Jan, and Andy were
+                    among the many people on Earth watching and waiting.</p>
+                <br></br>
+
+                <p>Neil Armstrong sat on the left seat. He would be the first person to set foot on the moon, followed
+                    shortly after by Aldrin. Armstrong was by most accounts a quiet and private person, which fits with
+                    Collins' description of the crew as amiable strangers. His wife Janet and their sons Ricky and Mark
+                    were at home in Houston. He was headed toward a lifeless rock 238,900 miles away. When Janet
+                    Armstrong was later asked about the greatest moment of their life together, she did not mention the
+                    moon landing. She said it was when they were married.</p>
+                <br></br>
+
+                <p>But before any of that, before the first footsteps, the three of them were here. In this ship. They
+                    travelled for four days, six hours, and forty five minutes, further from Earth than anyone had ever
+                    been. The mission ran on the work of thousands of engineers, and on a significant amount of public
+                    hope. Outside the windows, the moon was getting closer. They had a job to do.</p>
+
             </div>
 
         </div>
@@ -229,14 +269,23 @@
 
             // preload audio assets 
             const soundDefs = [
-                { key: "narration1", src: "assets/theatricalJFK.mp3", options: { volume: 0.5 } },
-                { key: "openingAmbiance", src: "assets/openingAmbiance.wav" },
+                { key: "narration1", src: "assets/theatricalJFK.mp3", options: { volume: 0.25 } },
+                { key: "openingAmbiance", src: "assets/openingAmbiance.wav", options: { volume: 0.7 } },
+                { key: "spaceAmbiance", src: "assets/spaceAmbiance.wav", options: { volume: 0.5 } },
+                { key: "earthAmbiance", src: "assets/earthAmbiance.wav" },
+
+                // script parts
+                { key: "script0", src: "assets/script0.m4a" }, // 31 sec
+                { key: "script1", src: "assets/script1.m4a" }, // 26 sec
+                { key: "script2", src: "assets/script2.m4a" }, // 42 sec
+                { key: "script3", src: "assets/script3.m4a" }, // 35 sec
+                { key: "script4", src: "assets/script4.m4a" }, // 25 sec
             ];
 
             window.sounds = {};
 
-            soundDefs.forEach(({ key, src }) => {
-                window.sounds[key] = new BABYLON.Sound(key, src, scene);
+            soundDefs.forEach(({ key, src, options = {} }) => {
+                window.sounds[key] = new BABYLON.Sound(key, src, scene, null, options);
             });
 
             console.log("test");
@@ -265,7 +314,7 @@
 
                     camera.attachControl(canvas, true);
                     camera.lowerRadiusLimit = 1;    // minimum zoom
-                    camera.upperRadiusLimit = 500;  // maximum zoom
+                    camera.upperRadiusLimit = 2500;  // maximum zoom
                     scene.activeCamera = camera;
 
                     scene.onBeforeRenderObservable.add(() => {
@@ -381,15 +430,29 @@
             { t: t(0), fn: () => goToView("middleCockpit") },
             { t: t(0), fn: () => { sounds.openingAmbiance.play(); startedSounds.add("openingAmbiance"); } },
             { t: t(0), fn: () => cameraRotating = true },
+            { t: t(0), fn: () => { sounds.spaceAmbiance.play(); startedSounds.add("spaceAmbiance"); } },
+
+            // main timeline
+            // { t: t(0.04), fn: () => { sounds.script0.play(); startedSounds.add("script0"); } }, // 31 sec
+            // { t: t(0.40), fn: () => { sounds.script1.play(); startedSounds.add("script1"); } }, // 26
+            // { t: t(1.08), fn: () => { sounds.script2.play(); startedSounds.add("script2"); } }, // 42
+            // { t: t(1.44), fn: () => { sounds.script3.play(); startedSounds.add("script3"); } }, // 35
+            // { t: t(2.00), fn: () => { sounds.script4.play(); startedSounds.add("script4"); } }, // 25
+
+            { t: t(0.04), fn: () => { sounds.script0.play(); startedSounds.add("script0"); } }, // 0:04 - 0:35
+            { t: t(0.37), fn: () => { sounds.script1.play(); startedSounds.add("script1"); } }, // 0:37 - 1:03 (35 + 2 gap)
+            { t: t(1.05), fn: () => { sounds.script2.play(); startedSounds.add("script2"); } }, // 1:05 - 1:47 (1:03 + 2 gap)
+            { t: t(1.49), fn: () => { sounds.script3.play(); startedSounds.add("script3"); } }, // 1:49 - 2:24 (1:47 + 2 gap)
+            { t: t(2.26), fn: () => { sounds.script4.play(); startedSounds.add("script4"); } },
 
 
-            { t: t(0.25), fn: () => cameraRotating = false },
-            { t: t(0.05), fn: () => { sounds.narration1.play(); startedSounds.add("narration1"); } },
+            { t: t(0.33), fn: () => goToView("outside") },          // 3 min 44 sec
 
-            { t: t(0.30), fn: () => goToView("topHatchOutside") },  // 30 seconds
+            { t: t(1.47), fn: () => goToView("topHatchOutside") }, 
+            { t: t(1.49), fn: () => goToView("middleCockpit") },
 
-            { t: t(1.15), fn: () => goToView("moonFeature") },      // 1 min 15 sec
-            { t: t(3.44), fn: () => goToView("outside") },          // 3 min 44 sec
+
+            { t: t(2.28), fn: () => goToView("moonFeature") },      // 1 min 15 sec
         ];
 
         // Interprets times cleanly (takes in minute. second to two places format (m.ss))
